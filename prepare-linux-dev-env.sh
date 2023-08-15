@@ -122,6 +122,7 @@ update_dev_variables() {
         echo 'export MY_INSTALL_DIR=~/.local' >>/home/$TARGET_USER/.bashrc
         echo 'export MY_SOURCE_DIR=~/source' >>/home/$TARGET_USER/.bashrc
         echo 'export MY_REPOS_DIR=~/source/repos' >>/home/$TARGET_USER/.bashrc
+        echo 'export MY_REMOTE_CONTAINERS_REPOS_DIR=/root/source/repos' >>/home/$TARGET_USER/.bashrc
 
         echo '' >>/home/$TARGET_USER/.bashrc
         echo '# configure Docker' >>/home/$TARGET_USER/.bashrc

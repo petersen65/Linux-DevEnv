@@ -3,7 +3,7 @@ build_docker_image() {
     local BASE_NAME_TAG='ubuntu:23.04'
     local TARGET_NAME_TAG='ubuntu-develop:latest'
     local CREATE_STEPS='prepare,docker,install,no_git,no_build,finish'
-    local PROJECTS='googletest,fruit,grpc'
+    local PROJECTS='googletest,flatbuffers,fruit,nng,grpc'
     local WHAT_IF=''
     local BUILD_CONTEXT='.'
     local TARGET_ENV='ubuntu_docker'
