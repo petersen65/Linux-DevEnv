@@ -25,4 +25,4 @@ ARG TARGET_ENV
 ARG CREATE_STEPS
 ARG WHAT_IF
 ARG PROJECTS
-RUN /tmp/prepare-linux-dev-env.sh -u root -e ${TARGET_ENV} -s ${CREATE_STEPS} -p ${PROJECTS} ${WHAT_IF} 2>> /tmp/err.txt
+RUN /tmp/prepare-linux-dev-env.sh -u root -e ${TARGET_ENV} -s ${CREATE_STEPS} -p ${PROJECTS} ${WHAT_IF} 2>> /tmp/err.txt 1>> /tmp/inf.txt

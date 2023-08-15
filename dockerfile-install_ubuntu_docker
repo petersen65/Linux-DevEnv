@@ -23,22 +23,22 @@ RUN chmod +x /tmp/prepare-linux-dev-env.sh && \
 
 ARG TARGET_ENV
 ARG WHAT_IF
-RUN /tmp/prepare-linux-dev-env.sh -u root -e ${TARGET_ENV} -s prepare ${WHAT_IF} 2>> /tmp/err.txt
+RUN /tmp/prepare-linux-dev-env.sh -u root -e ${TARGET_ENV} -s prepare ${WHAT_IF} 2>> /tmp/err.txt 1>> /tmp/inf.txt
 
 # Build stage 'docker' ------------------------------------------------------------------------------------------------
 FROM prepare AS docker
 ARG TARGET_ENV
 ARG WHAT_IF
-RUN /tmp/prepare-linux-dev-env.sh -u root -e ${TARGET_ENV} -s -,docker ${WHAT_IF} 2>> /tmp/err.txt
+RUN /tmp/prepare-linux-dev-env.sh -u root -e ${TARGET_ENV} -s -,docker ${WHAT_IF} 2>> /tmp/err.txt 1>> /tmp/inf.txt
 
 # Build stage 'install' -----------------------------------------------------------------------------------------------
 FROM docker AS install
 ARG TARGET_ENV
 ARG WHAT_IF
-RUN /tmp/prepare-linux-dev-env.sh -u root -e ${TARGET_ENV} -s -,-,install ${WHAT_IF} 2>> /tmp/err.txt
+RUN /tmp/prepare-linux-dev-env.sh -u root -e ${TARGET_ENV} -s -,-,install ${WHAT_IF} 2>> /tmp/err.txt 1>> /tmp/inf.txt
 
 # Build stage 'finish' ------------------------------------------------------------------------------------------------
 FROM install AS finish
 ARG TARGET_ENV
 ARG WHAT_IF
-RUN /tmp/prepare-linux-dev-env.sh -u root -e ${TARGET_ENV} -s -,-,-,-,-,finish ${WHAT_IF} 2>> /tmp/err.txt
+RUN /tmp/prepare-linux-dev-env.sh -u root -e ${TARGET_ENV} -s -,-,-,-,-,finish ${WHAT_IF} 2>> /tmp/err.txt 1>> /tmp/inf.txt
