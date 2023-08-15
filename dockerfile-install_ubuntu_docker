@@ -1,0 +1,44 @@
+# syntax=docker/dockerfile:1
+# Build stage 'prepare' -----------------------------------------------------------------------------------------------
+ARG BASE_IMG
+FROM ${BASE_IMG} AS prepare
+ENTRYPOINT ["/bin/bash"]
+WORKDIR /root
+
+ENV MY_INSTALL_DIR=/root/.local \
+    MY_SOURCE_DIR=/root/source \
+    MY_REPOS_DIR=/root/source/repos \
+    DOCKER_HIDE_LEGACY_COMMANDS=ON \
+    DOCKER_BUILDKIT=1 \
+    COMPOSE_DOCKER_CLI_BUILD=1
+
+COPY --chown=root:root .vimrc /tmp/
+COPY --chown=root:root .bash_aliases /tmp/
+COPY --chown=root:root prepare-linux-dev-env.sh /tmp/
+
+RUN chmod +x /tmp/prepare-linux-dev-env.sh && \
+    apt-get update && \
+    apt-get install --yes dos2unix && \
+    dos2unix -iso -1252 /tmp/prepare-linux-dev-env.sh
+
+ARG TARGET_ENV
+ARG WHAT_IF
+RUN /tmp/prepare-linux-dev-env.sh -u root -e ${TARGET_ENV} -s prepare ${WHAT_IF} 2>> /tmp/err.txt
+
+# Build stage 'docker' ------------------------------------------------------------------------------------------------
+FROM prepare AS docker
+ARG TARGET_ENV
+ARG WHAT_IF
+RUN /tmp/prepare-linux-dev-env.sh -u root -e ${TARGET_ENV} -s -,docker ${WHAT_IF} 2>> /tmp/err.txt
+
+# Build stage 'install' -----------------------------------------------------------------------------------------------
+FROM docker AS install
+ARG TARGET_ENV
+ARG WHAT_IF
+RUN /tmp/prepare-linux-dev-env.sh -u root -e ${TARGET_ENV} -s -,-,install ${WHAT_IF} 2>> /tmp/err.txt
+
+# Build stage 'finish' ------------------------------------------------------------------------------------------------
+FROM install AS finish
+ARG TARGET_ENV
+ARG WHAT_IF
+RUN /tmp/prepare-linux-dev-env.sh -u root -e ${TARGET_ENV} -s -,-,-,-,-,finish ${WHAT_IF} 2>> /tmp/err.txt
