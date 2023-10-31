@@ -4,12 +4,12 @@
 # Prepare & Install on Windows 11 Terminal -----------------------------------------------------------------------------
 #
 # WSL PS:
-#     sl $MY_REPOS_DIR\Scripts\linux-dev 
+#     sl $MY_REPOS_DIR\Linux-DevEnv
 #     Copy-Item -Path .\.bash_aliases,.\.vimrc,.\prepare-linux-dev-env.sh -Destination \\wsl.localhost\Ubuntu\tmp\
 #     Ubuntu.exe
 # 
 # WSL GIT BASH: 
-#     cd $MY_REPOS_DIR/Scripts/linux-dev 
+#     cd $MY_REPOS_DIR/Linux-DevEnv 
 #     cp .bash_aliases .vimrc prepare-linux-dev-env.sh //wsl.localhost/Ubuntu/tmp
 #     Ubuntu.exe
 #
