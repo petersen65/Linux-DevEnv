@@ -491,7 +491,7 @@ declare -A -r GIT=(
     [flatbuffers]='git clone -b v23.5.26 https://github.com/google/flatbuffers.git $MY_SOURCE_DIR/flatbuffers'
     [fruit]='git clone -b v3.7.1 https://github.com/google/fruit.git $MY_SOURCE_DIR/fruit'
     [nng]='git clone -b v1.5.2 https://github.com/nanomsg/nng.git $MY_SOURCE_DIR/nng'
-    [grpc]='git clone -b v1.57.0 --recurse-submodules --depth 1 --shallow-submodules https://github.com/grpc/grpc $MY_SOURCE_DIR/grpc'
+    [grpc]='git clone -b v1.60.0 --recurse-submodules --depth 1 --shallow-submodules https://github.com/grpc/grpc $MY_SOURCE_DIR/grpc'
 )
 
 declare -a PROJECTS=(${!GIT[@]})
