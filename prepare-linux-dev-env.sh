@@ -120,9 +120,9 @@ update_dev_variables() {
         echo '' >>/home/$TARGET_USER/.bashrc
         echo '# to be used as prefix for local installations' >>/home/$TARGET_USER/.bashrc
         echo 'export MY_INSTALL_DIR=~/.local' >>/home/$TARGET_USER/.bashrc
-        echo 'export MY_SOURCE_DIR=~/source' >>/home/$TARGET_USER/.bashrc
-        echo 'export MY_REPOS_DIR=~/source/repos' >>/home/$TARGET_USER/.bashrc
-        echo 'export MY_REMOTE_CONTAINERS_REPOS_DIR=/root/source/repos' >>/home/$TARGET_USER/.bashrc
+        echo 'export MY_SOURCE_DIR=~/Source' >>/home/$TARGET_USER/.bashrc
+        echo 'export MY_REPOS_DIR=~/Source/Repos' >>/home/$TARGET_USER/.bashrc
+        echo 'export MY_REMOTE_CONTAINERS_REPOS_DIR=/root/Source/Repos' >>/home/$TARGET_USER/.bashrc
 
         echo '' >>/home/$TARGET_USER/.bashrc
         echo '# configure Docker' >>/home/$TARGET_USER/.bashrc
@@ -504,12 +504,12 @@ while getopts "u:e:s:p:wh" ARG; do
 
         if [ "$TARGET_USER" = "root" ]; then
             MY_INSTALL_DIR=/root/.local
-            MY_SOURCE_DIR=/root/source
-            MY_REPOS_DIR=/root/source/repos
+            MY_SOURCE_DIR=/root/Source
+            MY_REPOS_DIR=/root/Source/Repos
         else
             MY_INSTALL_DIR=/home/${OPTARG}/.local
-            MY_SOURCE_DIR=/home/${OPTARG}/source
-            MY_REPOS_DIR=/home/${OPTARG}/source/repos
+            MY_SOURCE_DIR=/home/${OPTARG}/Source
+            MY_REPOS_DIR=/home/${OPTARG}/Source/Repos
         fi
         ;;
 
