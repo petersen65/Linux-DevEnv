@@ -45,8 +45,8 @@
 #     apt_install
 #     <git_all>
 #     <build_all>
-#     final_config
 #     user_group
+#     final_config
 #     exit # exit root
 #     exit # exit terminal
 #
@@ -412,21 +412,7 @@ build_all() {
     done
 }
 
-# final configuration for C++ development
-final_config() {
-    pip install --break-system-packages --upgrade pip
-    pip install --break-system-packages conan
-    conan profile detect
-
-    if [ -n "$TARGET_USER" ]; then
-        cp --recursive /root/.conan2 /home/$TARGET_USER
-    fi
-
-    apt-get purge --yes --auto-remove cmake
-    pip install --break-system-packages cmake coloredlogs cmake_format
-}
-
-# apply ownership to target user after final configuration
+# apply ownership permissions to target user
 user_group() {
     if [ -n "$TARGET_USER" ]; then
         chown --recursive $TARGET_USER:$TARGET_USER \
@@ -434,10 +420,21 @@ user_group() {
             $MY_SOURCE_DIR \
             /home/$TARGET_USER/.vimrc \
             /home/$TARGET_USER/.bash_aliases
+    fi
+}
 
-        if [ -d "/home/$TARGET_USER/.conan2" ]; then
-            chown --recursive $TARGET_USER:$TARGET_USER /home/$TARGET_USER/.conan2
-        fi
+# final configuration for C++ development
+final_config() {
+    apt-get purge --yes --auto-remove cmake
+    
+    if [ -n "$TARGET_USER" ]; then
+        su --command 'pip install --break-system-packages --upgrade pip' $TARGET_USER
+        su --command 'pip install --break-system-packages conan cmake coloredlogs cmake_format' $TARGET_USER
+        su --login --command 'conan profile detect' $TARGET_USER
+    else
+        pip install --break-system-packages --upgrade pip
+        pip install --break-system-packages conan cmake coloredlogs cmake_format
+        conan profile detect
     fi
 }
 
@@ -484,11 +481,11 @@ create_environment() {
     fi
 
     if [ $STEPS = false -o "${CREATE_STEPS[5]}" = "finish" ]; then
-        [ $WHAT_IF = false ] && final_config || echo "final_config"
-
         if [ "$UGO_SETTINGS" = "on" ]; then
             [ $WHAT_IF = false ] && user_group || echo "user_group"
         fi
+
+        [ $WHAT_IF = false ] && final_config || echo "final_config"
     fi
 }
 
