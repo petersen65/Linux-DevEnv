@@ -1,6 +1,6 @@
 # Functions library
 build_docker_image() {
-    local BASE_NAME_TAG='ubuntu:23.10'
+    local BASE_NAME_TAG='ubuntu:24.04'
     local TARGET_NAME_TAG='ubuntu-develop:latest'
     local CREATE_STEPS='prepare,docker,install,no_git,no_build,finish'
     local PROJECTS='googletest,flatbuffers,fruit,nng,grpc'

@@ -1,17 +1,17 @@
 #!/bin/bash
-# prepare and install development support for programming with C/C++
+# prepare and install development support for programming with C/C++ and Go
 
 # Prepare & Install on Windows 11 Terminal -----------------------------------------------------------------------------
 #
 # WSL PS:
 #     sl $MY_REPOS_DIR\Linux-DevEnv
-#     Copy-Item -Path .\.bash_aliases,.\.vimrc,.\prepare-linux-dev-env.sh -Destination \\wsl.localhost\Ubuntu\tmp\
-#     Ubuntu.exe
+#     Copy-Item -Path .\.bash_aliases,.\.vimrc,.\prepare-linux-dev-env.sh -Destination \\wsl.localhost\Ubuntu-24.04\tmp\
+#     ubuntu2404.exe
 # 
 # WSL GIT BASH: 
 #     cd $MY_REPOS_DIR/Linux-DevEnv 
-#     cp .bash_aliases .vimrc prepare-linux-dev-env.sh //wsl.localhost/Ubuntu/tmp
-#     Ubuntu.exe
+#     cp .bash_aliases .vimrc prepare-linux-dev-env.sh //wsl.localhost/Ubuntu-24.04/tmp
+#     ubuntu2404.exe
 #
 # SSH VM:
 #     sftp user@dns-name
@@ -39,7 +39,7 @@
 #     ubuntu_install_docker ['cli_only']
 #     exit # exit root
 #     exit # exit terminal
-#     ssh user@dns-name | ubuntu.exe
+#     ssh user@dns-name | ubuntu2404.exe
 #     sudo -i
 #     source /tmp/prepare-linux-dev-env.sh -u 'username'
 #     apt_install
@@ -112,7 +112,7 @@ ubuntu_user_experience() {
     fi
 }
 
-# adjust .bashrc with standardized paths for C/C++ development
+# adjust .bashrc with standardized paths for C/C++ and Go development
 update_dev_variables() {
     mkdir -p $MY_INSTALL_DIR/bin $MY_REPOS_DIR
 
@@ -129,6 +129,10 @@ update_dev_variables() {
         echo 'export DOCKER_HIDE_LEGACY_COMMANDS=ON' >>/home/$TARGET_USER/.bashrc
         echo 'export DOCKER_BUILDKIT=1' >>/home/$TARGET_USER/.bashrc
         echo 'export COMPOSE_DOCKER_CLI_BUILD=1' >>/home/$TARGET_USER/.bashrc
+
+        echo '' >>/home/$TARGET_USER/.bashrc
+        echo '# configure path environment variable' >>/home/$TARGET_USER/.bashrc
+        echo 'export PATH=$PATH:/usr/local/go/bin' >>/home/$TARGET_USER/.bashrc
     fi
 }
 
@@ -187,7 +191,7 @@ apt_install() {
         python3-autopep8 \
         gcovr
 
-    # latest GNU C/C++ compiler
+    # latest GNU C/C++ compiler for Ubuntu 22.04 LTS
     if [ "$CODE_NAME" = "jammy" ]; then
         apt-get install --yes \
             gcc-12 \
@@ -209,6 +213,7 @@ apt_install() {
         update-alternatives --install /usr/bin/cpp cpp /usr/bin/g++-12 0
     fi
 
+    # latest GNU C/C++ compiler for Ubuntu 23.04
     if [ "$CODE_NAME" = "lunar" ]; then
         apt-get install --yes \
             gcc-13 \
@@ -229,6 +234,38 @@ apt_install() {
         update-alternatives --install /usr/bin/cc cc /usr/bin/gcc-13 0
         update-alternatives --install /usr/bin/cpp cpp /usr/bin/g++-13 0
     fi
+
+    # latest GNU and LLVM C/C++ compilers for Ubuntu 24.04
+    if [ "$CODE_NAME" = "noble" ]; then
+        apt-get install --yes \
+            gcc-14 \
+            g++-14 \
+            gcc-14-locales \
+            gcc-14-doc \
+            libstdc++-14-doc \
+            clang \
+            clang-18 \
+            lldb-18 \
+            lld-18 \
+            libc++-18-dev \
+            libc++abi-18-dev
+
+        update-alternatives --remove-all gcc || :
+        update-alternatives --remove-all cc || :
+        update-alternatives --remove-all cpp || :
+        update-alternatives --remove-all g++ || :
+        update-alternatives --remove-all c++ || :
+
+        update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 0
+        update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 0
+        update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-14 0
+        update-alternatives --install /usr/bin/cc cc /usr/bin/gcc-14 0
+        update-alternatives --install /usr/bin/cpp cpp /usr/bin/g++-14 0
+    fi
+
+    # tools for building software with Go
+    wget https://go.dev/dl/go1.22.3.linux-amd64.tar.gz -O /tmp/go1.22.3.linux-amd64.tar.gz
+    tar -C /usr/local -xzf /tmp/go1.22.3.linux-amd64.tar.gz
 }
 
 # build googletest for given build type
@@ -488,10 +525,10 @@ PRINT_USAGE=false
 
 declare -A -r GIT=(
     [googletest]='git clone -b v1.14.0 https://github.com/google/googletest.git $MY_SOURCE_DIR/googletest'
-    [flatbuffers]='git clone -b v23.5.26 https://github.com/google/flatbuffers.git $MY_SOURCE_DIR/flatbuffers'
+    [flatbuffers]='git clone -b v24.3.25 https://github.com/google/flatbuffers.git $MY_SOURCE_DIR/flatbuffers'
     [fruit]='git clone -b v3.7.1 https://github.com/google/fruit.git $MY_SOURCE_DIR/fruit'
-    [nng]='git clone -b v1.5.2 https://github.com/nanomsg/nng.git $MY_SOURCE_DIR/nng'
-    [grpc]='git clone -b v1.60.0 --recurse-submodules --depth 1 --shallow-submodules https://github.com/grpc/grpc $MY_SOURCE_DIR/grpc'
+    [nng]='git clone -b v1.8.0 https://github.com/nanomsg/nng.git $MY_SOURCE_DIR/nng'
+    [grpc]='git clone -b v1.63.0 --recurse-submodules --depth 1 --shallow-submodules https://github.com/grpc/grpc $MY_SOURCE_DIR/grpc'
 )
 
 declare -a PROJECTS=(${!GIT[@]})
