@@ -55,7 +55,7 @@
 #         -u 'username' \
 #         -e 'ubuntu_vm' | -e 'ubuntu_wsl' \
 #         [-s prepare,docker,install,git,build,finish] \
-#         [-p googletest,fruit,grpc] \
+#         [-p googletest,flatbuffers,fruit,nng,grpc] \
 #         [-w]
 #
 #     exit # exit root
