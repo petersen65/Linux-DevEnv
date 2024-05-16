@@ -7,9 +7,9 @@
 #     sl $MY_REPOS_DIR\Linux-DevEnv
 #     Copy-Item -Path .\.bash_aliases,.\.vimrc,.\prepare-linux-dev-env.sh -Destination \\wsl.localhost\Ubuntu-24.04\tmp\
 #     ubuntu2404.exe
-# 
-# WSL GIT BASH: 
-#     cd $MY_REPOS_DIR/Linux-DevEnv 
+#
+# WSL GIT BASH:
+#     cd $MY_REPOS_DIR/Linux-DevEnv
 #     cp .bash_aliases .vimrc prepare-linux-dev-env.sh //wsl.localhost/Ubuntu-24.04/tmp
 #     ubuntu2404.exe
 #
@@ -19,7 +19,7 @@
 #     put * /tmp/
 #     exit
 #     ssh user@dns-name
-# 
+#
 # VM or WSL terminal:
 #     sudo -i
 #     chmod +x /tmp/prepare-linux-dev-env.sh
@@ -69,16 +69,18 @@ apt_prepare() {
     apt-get upgrade --with-new-pkgs --yes
     apt-get autoremove --yes
 
-    ln -fs /usr/share/zoneinfo/Europe/Berlin /etc/localtime
-    dpkg-reconfigure --frontend noninteractive tzdata
-
     apt-get install --yes \
         dos2unix \
         apt-transport-https \
         ca-certificates \
         curl \
         gnupg \
-        lsb-release
+        lsb-release \
+        tzdata
+
+    ln -fs /usr/share/zoneinfo/Europe/Berlin /etc/localtime
+    dpkg-reconfigure --frontend noninteractive tzdata
+    useradd -m $TARGET_USER || :
 }
 
 # adjust .bashrc for better user experiences
@@ -98,42 +100,38 @@ ubuntu_user_experience() {
     sed --in-place '/color=auto/s/#alias/alias/g' /root/.bashrc
     sed --in-place '/GCC_COLORS/s/#export/export/g' /root/.bashrc
 
-    if [ -n "$TARGET_USER" ]; then
-        cp /tmp/.vimrc /home/$TARGET_USER
-        cp /tmp/.bash_aliases /home/$TARGET_USER
+    cp /tmp/.vimrc /home/$TARGET_USER
+    cp /tmp/.bash_aliases /home/$TARGET_USER
 
-        sed --in-place 's/#force_color_prompt/force_color_prompt/g' /home/$TARGET_USER/.bashrc
-        sed --in-place '/debian_chroot/s/\bw\b/W/g' /home/$TARGET_USER/.bashrc
-        sed --in-place '/debian_chroot/s/\\$ / \\$ /g' /home/$TARGET_USER/.bashrc
-        sed --in-place '/color=auto/s/#alias/alias/g' /home/$TARGET_USER/.bashrc
-        sed --in-place '/GCC_COLORS/s/#export/export/g' /home/$TARGET_USER/.bashrc
+    sed --in-place 's/#force_color_prompt/force_color_prompt/g' /home/$TARGET_USER/.bashrc
+    sed --in-place '/debian_chroot/s/\bw\b/W/g' /home/$TARGET_USER/.bashrc
+    sed --in-place '/debian_chroot/s/\\$ / \\$ /g' /home/$TARGET_USER/.bashrc
+    sed --in-place '/color=auto/s/#alias/alias/g' /home/$TARGET_USER/.bashrc
+    sed --in-place '/GCC_COLORS/s/#export/export/g' /home/$TARGET_USER/.bashrc
 
-        echo "$TARGET_USER ALL=(ALL) NOPASSWD:ALL" >>/etc/sudoers
-    fi
+    echo "$TARGET_USER ALL=(ALL) NOPASSWD:ALL" >>/etc/sudoers
 }
 
 # adjust .bashrc with standardized paths for C/C++ and Go development
 update_dev_variables() {
     mkdir -p $MY_INSTALL_DIR/bin $MY_REPOS_DIR
 
-    if [ -n "$TARGET_USER" ]; then
-        echo '' >>/home/$TARGET_USER/.bashrc
-        echo '# to be used as prefix for local installations' >>/home/$TARGET_USER/.bashrc
-        echo 'export MY_INSTALL_DIR=~/.local' >>/home/$TARGET_USER/.bashrc
-        echo 'export MY_SOURCE_DIR=~/Source' >>/home/$TARGET_USER/.bashrc
-        echo 'export MY_REPOS_DIR=~/Source/Repos' >>/home/$TARGET_USER/.bashrc
-        echo 'export MY_REMOTE_CONTAINERS_REPOS_DIR=/root/Source/Repos' >>/home/$TARGET_USER/.bashrc
+    echo '' >>/home/$TARGET_USER/.bashrc
+    echo '# to be used as prefix for local installations' >>/home/$TARGET_USER/.bashrc
+    echo 'export MY_INSTALL_DIR=~/.local' >>/home/$TARGET_USER/.bashrc
+    echo 'export MY_SOURCE_DIR=~/Source' >>/home/$TARGET_USER/.bashrc
+    echo 'export MY_REPOS_DIR=~/Source/Repos' >>/home/$TARGET_USER/.bashrc
+    echo 'export MY_REMOTE_CONTAINERS_REPOS_DIR=/home/$TARGET_USER/Source/Repos' >>/home/$TARGET_USER/.bashrc
 
-        echo '' >>/home/$TARGET_USER/.bashrc
-        echo '# configure Docker' >>/home/$TARGET_USER/.bashrc
-        echo 'export DOCKER_HIDE_LEGACY_COMMANDS=ON' >>/home/$TARGET_USER/.bashrc
-        echo 'export DOCKER_BUILDKIT=1' >>/home/$TARGET_USER/.bashrc
-        echo 'export COMPOSE_DOCKER_CLI_BUILD=1' >>/home/$TARGET_USER/.bashrc
+    echo '' >>/home/$TARGET_USER/.bashrc
+    echo '# configure Docker' >>/home/$TARGET_USER/.bashrc
+    echo 'export DOCKER_HIDE_LEGACY_COMMANDS=ON' >>/home/$TARGET_USER/.bashrc
+    echo 'export DOCKER_BUILDKIT=1' >>/home/$TARGET_USER/.bashrc
+    echo 'export COMPOSE_DOCKER_CLI_BUILD=1' >>/home/$TARGET_USER/.bashrc
 
-        echo '' >>/home/$TARGET_USER/.bashrc
-        echo '# configure path environment variable' >>/home/$TARGET_USER/.bashrc
-        echo 'export PATH=$PATH:/usr/local/go/bin' >>/home/$TARGET_USER/.bashrc
-    fi
+    echo '' >>/home/$TARGET_USER/.bashrc
+    echo '# configure path environment variable' >>/home/$TARGET_USER/.bashrc
+    echo 'export PATH=$PATH:/usr/local/go/bin' >>/home/$TARGET_USER/.bashrc
 }
 
 # install Docker based on given CPU architecture
@@ -149,10 +147,7 @@ ubuntu_install_docker() {
 
         systemctl enable docker.service
         systemctl enable containerd.service
-
-        if [ -n "$TARGET_USER" ]; then
-            usermod -aG docker $TARGET_USER
-        fi
+        usermod -aG docker $TARGET_USER
     else
         apt-get install --yes docker-ce-cli docker-compose
     fi
@@ -264,7 +259,7 @@ apt_install() {
     fi
 
     # tools for building software with Go
-    wget https://go.dev/dl/go1.22.3.linux-amd64.tar.gz -O /tmp/go1.22.3.linux-amd64.tar.gz
+    curl -fsSL -o /tmp/go1.22.3.linux-amd64.tar.gz https://golang.org/dl/go1.22.3.linux-amd64.tar.gz
     tar -C /usr/local -xzf /tmp/go1.22.3.linux-amd64.tar.gz
 }
 
@@ -311,7 +306,7 @@ build_fruit() {
         -DBUILD_SHARED_LIBS=OFF \
         -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE \
         -DCMAKE_PREFIX_PATH=$MY_INSTALL_DIR/$1 \
-        -DCMAKE_MODULE_PATH=$MY_INSTALL_DIR/$1 \
+    -DCMAKE_MODULE_PATH=$MY_INSTALL_DIR/$1 \
         -DCMAKE_INSTALL_PREFIX=$MY_INSTALL_DIR/$1
 
     cmake --build $BUILD_DIR -j $(nproc) --target install
@@ -414,28 +409,19 @@ build_all() {
 
 # apply ownership permissions to target user
 user_group() {
-    if [ -n "$TARGET_USER" ]; then
-        chown --recursive $TARGET_USER:$TARGET_USER \
-            $MY_INSTALL_DIR \
-            $MY_SOURCE_DIR \
-            /home/$TARGET_USER/.vimrc \
-            /home/$TARGET_USER/.bash_aliases
-    fi
+    chown --recursive $TARGET_USER:$TARGET_USER \
+        $MY_INSTALL_DIR \
+        $MY_SOURCE_DIR \
+        /home/$TARGET_USER/.vimrc \
+        /home/$TARGET_USER/.bash_aliases
 }
 
 # final configuration for C++ development
 final_config() {
     apt-get purge --yes --auto-remove cmake
-    
-    if [ -n "$TARGET_USER" ]; then
-        su --command 'pip install --break-system-packages --upgrade pip' $TARGET_USER
-        su --command 'pip install --break-system-packages conan cmake coloredlogs cmake_format' $TARGET_USER
-        su --login --command 'conan profile detect' $TARGET_USER
-    else
-        pip install --break-system-packages --upgrade pip
-        pip install --break-system-packages conan cmake coloredlogs cmake_format
-        conan profile detect
-    fi
+    su --command 'pip install --break-system-packages --upgrade pip' $TARGET_USER
+    su --command 'pip install --break-system-packages conan cmake coloredlogs cmake_format' $TARGET_USER
+    su --login --command 'conan profile detect' $TARGET_USER
 }
 
 # -- environment functions ---------------------------------------------------------------------------------------------
@@ -492,7 +478,7 @@ create_environment() {
 # print out usage information
 print_usage() {
     echo "Usage: prepare-linux-dev-env.sh"
-    echo "    -u <target user | 'root'>"
+    echo "    -u <target user>"
     echo "    [-e <ubuntu_docker | ubuntu_vm | ubuntu_wsl>]"
     echo "    [-s <prepare,docker,install,git,build,finish | '-,-,-,-,-,-'>]"
     echo "    [-p $(echo ${PROJECTS[*]} | sed 's/ /,/g')]"
@@ -515,6 +501,7 @@ print_parameter_set() {
 # prepare development environment
 set -e +u
 
+TARGET_USER='developer'
 TARGET_ENVIRONMENT=''
 CREATE_STEPS=()
 WHAT_IF=false
@@ -534,16 +521,8 @@ declare -a PROJECTS=(${!GIT[@]})
 while getopts "u:e:s:p:wh" ARG; do
     case $ARG in
     u)
-        TARGET_USER=${OPTARG}
-
-        if [ "$TARGET_USER" = "root" ]; then
-            MY_INSTALL_DIR=/root/.local
-            MY_SOURCE_DIR=/root/Source
-            MY_REPOS_DIR=/root/Source/Repos
-        else
-            MY_INSTALL_DIR=/home/${OPTARG}/.local
-            MY_SOURCE_DIR=/home/${OPTARG}/Source
-            MY_REPOS_DIR=/home/${OPTARG}/Source/Repos
+        if ! [ -n "${OPTARG}" ]; then
+            TARGET_USER=${OPTARG}
         fi
         ;;
 
@@ -569,17 +548,17 @@ while getopts "u:e:s:p:wh" ARG; do
     esac
 done
 
+MY_INSTALL_DIR=/home/$TARGET_USER/.local
+MY_SOURCE_DIR=/home/$TARGET_USER/Source
+MY_REPOS_DIR=/home/$TARGET_USER/Source/Repos
+
 if [ $PRINT_USAGE = true ]; then
     print_usage
-elif ! [ -v TARGET_USER -a -n "$TARGET_USER" ]; then
-    echo 'Mandatory target user not provided, nothing applied!'
+elif [ "$TARGET_USER" = "root" ]; then
+    echo 'Target user cannot be root, nothing applied!'
 else
     # print out parameter set for diagnostic purposes
     print_parameter_set
-
-    if [ "$TARGET_USER" = "root" ]; then
-        TARGET_USER=''
-    fi
 
     # identify environment installation target
     case "$TARGET_ENVIRONMENT" in

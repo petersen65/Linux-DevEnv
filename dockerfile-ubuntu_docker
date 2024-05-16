@@ -5,13 +5,6 @@ FROM ${BASE_IMG}
 ENTRYPOINT ["/bin/bash"]
 WORKDIR /root
 
-ENV MY_INSTALL_DIR=/root/.local \
-    MY_SOURCE_DIR=/root/source \
-    MY_REPOS_DIR=/root/source/repos \
-    DOCKER_HIDE_LEGACY_COMMANDS=ON \
-    DOCKER_BUILDKIT=1 \
-    COMPOSE_DOCKER_CLI_BUILD=1
-
 COPY --chown=root:root .vimrc /tmp/
 COPY --chown=root:root .bash_aliases /tmp/
 COPY --chown=root:root prepare-linux-dev-env.sh /tmp/
@@ -21,8 +14,9 @@ RUN chmod +x /tmp/prepare-linux-dev-env.sh && \
     apt-get install --yes dos2unix && \
     dos2unix -iso -1252 /tmp/prepare-linux-dev-env.sh
 
+ARG TARGET_USER
 ARG TARGET_ENV
 ARG CREATE_STEPS
 ARG WHAT_IF
 ARG PROJECTS
-RUN /tmp/prepare-linux-dev-env.sh -u root -e ${TARGET_ENV} -s ${CREATE_STEPS} -p ${PROJECTS} ${WHAT_IF} 2>> /tmp/err.txt 1>> /tmp/inf.txt
+RUN /tmp/prepare-linux-dev-env.sh -u ${TARGET_USER} -e ${TARGET_ENV} -s ${CREATE_STEPS} -p ${PROJECTS} ${WHAT_IF} 2>> /tmp/err.txt 1>> /tmp/inf.txt
