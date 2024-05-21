@@ -1,44 +1,50 @@
 # Functions library
 build_docker_image() {
+    local TARGET_USER='developer'
     local BASE_NAME_TAG='ubuntu:24.04'
     local TARGET_NAME_TAG='ubuntu-develop:latest'
     local CREATE_STEPS='prepare,docker,install,no_git,no_build,finish'
     local PROJECTS='googletest,flatbuffers,fruit,nng,grpc'
     local WHAT_IF=''
+    local DOCKER_FILE='dockerfile-ubuntu_docker'
     local BUILD_CONTEXT='.'
     local TARGET_ENV='ubuntu_docker'
-    local DOCKER_FILE='dockerfile-ubuntu_docker'
 
     if [ -n "$1" ]; then
-        BASE_NAME_TAG=$1
+        TARGET_USER=$1
     fi
 
     if [ -n "$2" ]; then
-        TARGET_NAME_TAG=$2
+        BASE_NAME_TAG=$2
     fi
 
     if [ -n "$3" ]; then
-        CREATE_STEPS=$3
+        TARGET_NAME_TAG=$3
     fi
 
     if [ -n "$4" ]; then
-        PROJECTS=$4
+        CREATE_STEPS=$4
     fi
 
-    if [ -n "$5" -a "$5" = "-w" ]; then
-        WHAT_IF=$5
+    if [ -n "$5" ]; then
+        PROJECTS=$5
     fi
 
-    if [ -n "$6" -a "$6" != "$DOCKER_FILE" ]; then
-        DOCKER_FILE=$6
+    if [ -n "$6" -a "$6" = "-w" ]; then
+        WHAT_IF=$6
+    fi
+
+    if [ -n "$7" -a "$7" != "$DOCKER_FILE" ]; then
+        DOCKER_FILE=$7
         CREATE_STEPS="! -> ignored for docker file \"$DOCKER_FILE\" <- !"
     fi
 
-    if [ -n "$7" ]; then
-        BUILD_CONTEXT=$7
+    if [ -n "$8" ]; then
+        BUILD_CONTEXT=$8
     fi
 
-    echo "build_docker_image [<base-name:tag>]   = '$BASE_NAME_TAG'"
+    echo "build_docker_image [<target-user>]     = '$TARGET_USER'"
+    echo "                   [<base-name:tag>]   = '$BASE_NAME_TAG'"
     echo "                   [<target-name:tag>] = '$TARGET_NAME_TAG'"
     echo "                   [<create-steps>]    = '$CREATE_STEPS'"
     echo "                   [<projects>]        = '$PROJECTS'"
@@ -63,15 +69,16 @@ build_docker_image() {
         docker image rm --force "${TARGET_NAME_TAG}"
 
         docker buildx build \
-        --build-arg BASE_IMG="${BASE_NAME_TAG}" \
-        --build-arg TARGET_ENV="${TARGET_ENV}" \
-        --build-arg CREATE_STEPS="${CREATE_STEPS}" \
-        --build-arg PROJECTS="${PROJECTS}" \
-        --build-arg WHAT_IF="${WHAT_IF}" \
-        --no-cache \
-        --tag "${TARGET_NAME_TAG}" \
-        --file "${BUILD_CONTEXT}/${DOCKER_FILE}" \
-        "${BUILD_CONTEXT}"
+            --build-arg BASE_IMG="${BASE_NAME_TAG}" \
+            --build-arg TARGET_USER="${TARGET_USER}" \
+            --build-arg TARGET_ENV="${TARGET_ENV}" \
+            --build-arg CREATE_STEPS="${CREATE_STEPS}" \
+            --build-arg PROJECTS="${PROJECTS}" \
+            --build-arg WHAT_IF="${WHAT_IF}" \
+            --no-cache \
+            --tag "${TARGET_NAME_TAG}" \
+            --file "${BUILD_CONTEXT}/${DOCKER_FILE}" \
+            "${BUILD_CONTEXT}"
     fi
 }
 

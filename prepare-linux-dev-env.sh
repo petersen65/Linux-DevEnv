@@ -70,6 +70,7 @@ apt_prepare() {
     apt-get autoremove --yes
 
     apt-get install --yes \
+        sudo \
         dos2unix \
         apt-transport-https \
         ca-certificates \
@@ -78,9 +79,13 @@ apt_prepare() {
         lsb-release \
         tzdata
 
-    ln -fs /usr/share/zoneinfo/Europe/Berlin /etc/localtime
-    dpkg-reconfigure --frontend noninteractive tzdata
-    useradd -m $TARGET_USER || :
+    #ln -fs /usr/share/zoneinfo/Europe/Berlin /etc/localtime
+    #dpkg-reconfigure --frontend noninteractive tzdata
+
+    if ! id -u "$TARGET_USER" >/dev/null 2>&1; then
+        useradd --create-home --groups sudo,adm,dialout,cdrom,floppy,audio,dip,video,plugdev --shell /bin/bash $TARGET_USER
+        echo "$TARGET_USER:Dev-42!" | chpasswd $TARGET_USER
+    fi
 }
 
 # adjust .bashrc for better user experiences
@@ -131,7 +136,7 @@ update_dev_variables() {
 
     echo '' >>/home/$TARGET_USER/.bashrc
     echo '# configure path environment variable' >>/home/$TARGET_USER/.bashrc
-    echo 'export PATH=$PATH:/usr/local/go/bin' >>/home/$TARGET_USER/.bashrc
+    echo 'export PATH=$HOME/.local/bin:$PATH:/usr/local/go/bin' >>/home/$TARGET_USER/.bashrc
 }
 
 # install Docker based on given CPU architecture
@@ -307,7 +312,7 @@ build_fruit() {
         -DBUILD_SHARED_LIBS=OFF \
         -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE \
         -DCMAKE_PREFIX_PATH=$MY_INSTALL_DIR/$1 \
-    -DCMAKE_MODULE_PATH=$MY_INSTALL_DIR/$1 \
+        -DCMAKE_MODULE_PATH=$MY_INSTALL_DIR/$1 \
         -DCMAKE_INSTALL_PREFIX=$MY_INSTALL_DIR/$1
 
     cmake --build $BUILD_DIR -j $(nproc) --target install
@@ -573,7 +578,7 @@ else
     # identify environment installation target
     case "$TARGET_ENVIRONMENT" in
     "ubuntu_docker")
-        create_environment container cli off
+        create_environment container cli on
         ;;
 
     "ubuntu_vm")
