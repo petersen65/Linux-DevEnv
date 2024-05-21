@@ -153,6 +153,7 @@ ubuntu_install_docker() {
     fi
 
     docker buildx install
+    cp --recursive /root/.docker /home/$TARGET_USER
 }
 
 # -- install functions -------------------------------------------------------------------------------------------------
@@ -386,6 +387,7 @@ git_all() {
     git config --global credential.helper store
     git config --global advice.detachedHead false
     git config --global status.submoduleSummary true
+    cp /root/.gitconfig /home/$TARGET_USER
 
     # invoke git per project
     for PROJECT_NAME in ${PROJECTS[@]}; do
@@ -414,6 +416,14 @@ user_group() {
         $MY_SOURCE_DIR \
         /home/$TARGET_USER/.vimrc \
         /home/$TARGET_USER/.bash_aliases
+
+    if [ -d "/home/$TARGET_USER/.docker" ]; then
+        chown --recursive $TARGET_USER:$TARGET_USER /home/$TARGET_USER/.docker
+    fi
+
+    if [ -f "/home/$TARGET_USER/.gitconfig" ]; then
+        chown $TARGET_USER:$TARGET_USER /home/$TARGET_USER/.gitconfig
+    fi
 }
 
 # final configuration for C++ development
@@ -521,7 +531,7 @@ declare -a PROJECTS=(${!GIT[@]})
 while getopts "u:e:s:p:wh" ARG; do
     case $ARG in
     u)
-        if ! [ -n "${OPTARG}" ]; then
+        if [ -n "${OPTARG}" ]; then
             TARGET_USER=${OPTARG}
         fi
         ;;
