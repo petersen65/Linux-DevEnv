@@ -79,9 +79,6 @@ apt_prepare() {
         lsb-release \
         tzdata
 
-    #ln -fs /usr/share/zoneinfo/Europe/Berlin /etc/localtime
-    #dpkg-reconfigure --frontend noninteractive tzdata
-
     if ! id -u "$TARGET_USER" >/dev/null 2>&1; then
         useradd --create-home --groups sudo,adm,dialout,cdrom,floppy,audio,dip,video,plugdev --shell /bin/bash $TARGET_USER
         echo "$TARGET_USER:Dev-42!" | chpasswd $TARGET_USER
@@ -431,9 +428,12 @@ user_group() {
     fi
 }
 
-# final configuration for C++ development
+# final configuration for C++ and Go development
 final_config() {
+    ln -fs /usr/share/zoneinfo/Europe/Berlin /etc/localtime
+    dpkg-reconfigure --frontend noninteractive tzdata
     apt-get purge --yes --auto-remove cmake
+
     su --command 'pip install --break-system-packages --upgrade pip' $TARGET_USER
     su --command 'pip install --break-system-packages conan cmake coloredlogs cmake_format' $TARGET_USER
     su --login --command 'conan profile detect' $TARGET_USER
